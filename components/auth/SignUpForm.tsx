@@ -5,10 +5,85 @@ import Label from "@/components/form/Label";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
 import Link from "next/link";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    companyName: "",
+    phoneNumber: "",
+  });
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (!isChecked) {
+      setError("Please agree to the Terms and Conditions");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: `${formData.firstName} ${formData.lastName}`,
+          email: formData.email,
+          password: formData.password,
+          companyName: formData.companyName,
+          phoneNumber: formData.phoneNumber,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "An error occurred during signup");
+      } else {
+        setSuccess(data.message);
+        // Reset form
+        setFormData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          password: "",
+          companyName: "",
+          phoneNumber: "",
+        });
+        setIsChecked(false);
+        // Redirect to signin after 3 seconds
+        setTimeout(() => {
+          router.push("/signin");
+        }, 3000);
+      }
+    } catch {
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <div className="flex flex-col flex-1 lg:w-1/2 w-full overflow-y-auto no-scrollbar">
       <div className="w-full max-w-md sm:pt-10 mx-auto mb-5">
@@ -83,8 +158,18 @@ export default function SignUpForm() {
                 </span>
               </div>
             </div>
-            <form>
+            <form onSubmit={handleSubmit}>
               <div className="space-y-5">
+                {error && (
+                  <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg dark:bg-red-900/20 dark:text-red-400">
+                    {error}
+                  </div>
+                )}
+                {success && (
+                  <div className="p-3 text-sm text-green-600 bg-green-50 rounded-lg dark:bg-green-900/20 dark:text-green-400">
+                    {success}
+                  </div>
+                )}
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                   {/* <!-- First Name --> */}
                   <div className="sm:col-span-1">
@@ -93,9 +178,12 @@ export default function SignUpForm() {
                     </Label>
                     <Input
                       type="text"
-                      id="fname"
-                      name="fname"
+                      id="firstName"
+                      name="firstName"
                       placeholder="Enter your first name"
+                      value={formData.firstName}
+                      onChange={handleChange}
+                      required
                     />
                   </div>
                   {/* <!-- Last Name --> */}
@@ -105,9 +193,12 @@ export default function SignUpForm() {
                     </Label>
                     <Input
                       type="text"
-                      id="lname"
-                      name="lname"
+                      id="lastName"
+                      name="lastName"
                       placeholder="Enter your last name"
+                      value={formData.lastName}
+                      onChange={handleChange}
+                      required
                     />
                   </div>
                 </div>
@@ -121,6 +212,9 @@ export default function SignUpForm() {
                     id="email"
                     name="email"
                     placeholder="Enter your email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
                   />
                 </div>
                 {/* <!-- Password --> */}
@@ -132,6 +226,10 @@ export default function SignUpForm() {
                     <Input
                       placeholder="Enter your password"
                       type={showPassword ? "text" : "password"}
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      required
                     />
                     <span
                       onClick={() => setShowPassword(!showPassword)}
@@ -144,6 +242,30 @@ export default function SignUpForm() {
                       )}
                     </span>
                   </div>
+                </div>
+                {/* <!-- Company Name (Optional) --> */}
+                <div>
+                  <Label>Company Name</Label>
+                  <Input
+                    type="text"
+                    id="companyName"
+                    name="companyName"
+                    placeholder="Enter your company name"
+                    value={formData.companyName}
+                    onChange={handleChange}
+                  />
+                </div>
+                {/* <!-- Phone Number (Optional) --> */}
+                <div>
+                  <Label>Phone Number</Label>
+                  <Input
+                    type="tel"
+                    id="phoneNumber"
+                    name="phoneNumber"
+                    placeholder="Enter your phone number"
+                    value={formData.phoneNumber}
+                    onChange={handleChange}
+                  />
                 </div>
                 {/* <!-- Checkbox --> */}
                 <div className="flex items-center gap-3">
@@ -165,8 +287,12 @@ export default function SignUpForm() {
                 </div>
                 {/* <!-- Button --> */}
                 <div>
-                  <button className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600">
-                    Sign Up
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLoading ? "Signing Up..." : "Sign Up"}
                   </button>
                 </div>
               </div>
