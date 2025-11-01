@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import { authConfig } from "@/auth.config";
+import { getRoleBasedDashboard } from "@/lib/utils/user-roles";
 
 const { auth } = NextAuth(authConfig);
 
@@ -73,19 +74,6 @@ export default auth((req) => {
 
   return undefined;
 });
-
-function getRoleBasedDashboard(role: string): string {
-  switch (role) {
-    case "VENDOR":
-      return "/vendor/dashboard";
-    case "ADMIN":
-      return "/admin/dashboard";
-    case "SUPER_ADMIN":
-      return "/superadmin/dashboard";
-    default:
-      return "/signin";
-  }
-}
 
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)"],
