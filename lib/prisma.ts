@@ -1,8 +1,10 @@
-import {
-  PrismaClient,
-  type Prisma,
-  type UserRole,
-} from "@/app/generated/prisma/client";
+// import {
+//   PrismaClient,
+//   type Prisma,
+//   type UserRole,
+// } from "@/app/generated/prisma/client";
+import { PrismaClient } from "@prisma/client";
+import type { Prisma, UserRole } from "@prisma/client";
 
 const globalForPrisma = global as unknown as {
   prisma: PrismaClient;

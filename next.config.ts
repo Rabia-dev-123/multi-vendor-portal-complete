@@ -29,10 +29,10 @@ const nextConfig: NextConfig = {
     return config;
   },
 
-  // Ensure Prisma binaries are copied during build
-  outputFileTracingIncludes: {
-    "/api/**/*": ["./app/generated/prisma/**/*"],
-  },
+  // // Ensure Prisma binaries are copied during build
+  // outputFileTracingIncludes: {
+  //   "/api/**/*": ["./app/generated/prisma/**/*"],
+  // },
 };
 
 export default nextConfig;
