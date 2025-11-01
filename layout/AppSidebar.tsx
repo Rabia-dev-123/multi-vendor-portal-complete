@@ -18,8 +18,11 @@ import {
   TableIcon,
   UserCircleIcon,
   GroupIcon,
+  BoxIconLine,
 } from "../icons/index";
 import { getRoleBasedDashboard } from "@/lib/utils/user-roles";
+import { hasFeatureAccess } from "@/lib/utils/checkFeatureAccess";
+import { type FeatureFlags } from "@/lib/featureFlags";
 
 type NavItem = {
   name: string;
@@ -29,7 +32,10 @@ type NavItem = {
   enabled?: boolean;
 };
 
-const getNavItems = (userRole: string): NavItem[] => [
+const getNavItems = (
+  userRole: string,
+  featureFlags?: FeatureFlags | null
+): NavItem[] => [
   {
     icon: <GridIcon />,
     name: "Dashboard",
@@ -40,7 +46,15 @@ const getNavItems = (userRole: string): NavItem[] => [
     icon: <GroupIcon />,
     name: "User Management",
     path: "/superadmin/user-management",
-    enabled: true,
+    enabled: userRole === "SUPER_ADMIN",
+  },
+  {
+    icon: <BoxIconLine />,
+    name: "Vendor Management",
+    path: "/admin/vendor-management",
+    enabled:
+      userRole === "SUPER_ADMIN" ||
+      (userRole === "ADMIN" && hasFeatureAccess(featureFlags, "manageVendors")),
   },
   {
     icon: <CalenderIcon />,
@@ -106,7 +120,9 @@ const othersItems: NavItem[] = [
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
-  const userRole = useSession().data?.user?.role || "VENDOR";
+  const session = useSession();
+  const userRole = session.data?.user?.role || "VENDOR";
+  const featureFlags = session.data?.user?.featureFlags as FeatureFlags | null;
 
   const renderMenuItems = (
     navItems: NavItem[],
@@ -256,7 +272,8 @@ const AppSidebar: React.FC = () => {
     // Check if the current path matches any submenu item
     let submenuMatched = false;
     ["main", "others"].forEach((menuType) => {
-      const items = menuType === "main" ? getNavItems(userRole) : othersItems;
+      const items =
+        menuType === "main" ? getNavItems(userRole, featureFlags) : othersItems;
       items.forEach((nav, index) => {
         if (nav.subItems) {
           nav.subItems.forEach((subItem) => {
@@ -277,7 +294,7 @@ const AppSidebar: React.FC = () => {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setOpenSubmenu(null);
     }
-  }, [pathname, isActive]);
+  }, [pathname, isActive, userRole, featureFlags]);
 
   useEffect(() => {
     // Set the height of the submenu items when the submenu is opened
@@ -389,7 +406,7 @@ const AppSidebar: React.FC = () => {
                   <HorizontaLDots />
                 )}
               </h2>
-              {renderMenuItems(getNavItems(userRole), "main")}
+              {renderMenuItems(getNavItems(userRole, featureFlags), "main")}
             </div>
 
             {/* <div className="">

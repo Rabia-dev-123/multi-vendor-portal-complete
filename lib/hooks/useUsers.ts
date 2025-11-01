@@ -1,31 +1,24 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CreateUserInput, UpdateUserInput } from "../validations/user";
+import { type Prisma } from "@prisma/client";
 
-import { FeatureFlags } from "../featureFlags";
-
-// Types
-type User = {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-  companyName?: string;
-  phoneNumber?: string;
-  address?: string;
-  website?: string;
-  taxId?: string;
-  designation?: string;
-  featureFlags?: FeatureFlags | null;
-  approvedAt?: string | null;
-  approvedBy?: {
-    id: number;
-    name: string;
-    email: string;
-  } | null;
-  lastLoginAt?: string | null;
-  createdAt: string;
-  updatedAt: string;
-};
+export type User = Prisma.UserGetPayload<{
+  select: {
+    id: true;
+    name: true;
+    email: true;
+    role: true;
+    featureFlags: true;
+    approvedAt: true;
+    approvedBy: {
+      select: {
+        id: true;
+        name: true;
+        email: true;
+      };
+    };
+  };
+}>;
 
 type GetUsersParams = {
   role?: string;

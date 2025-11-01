@@ -57,6 +57,13 @@ export default auth((req) => {
     // Check if user is trying to access a role-specific route
     for (const [role, pattern] of Object.entries(roleBasedRoutes)) {
       if (pattern.test(nextUrl.pathname)) {
+        // SUPER_ADMIN can access both SUPER_ADMIN and ADMIN routes
+        if (
+          userRole === "SUPER_ADMIN" &&
+          (role === "SUPER_ADMIN" || role === "ADMIN")
+        ) {
+          continue;
+        }
         // If user's role doesn't match, redirect to their dashboard
         if (userRole !== role) {
           const dashboardUrl = getRoleBasedDashboard(userRole);

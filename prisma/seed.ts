@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
+import { DEFAULT_FEATURE_FLAGS } from "@/lib/featureFlags";
 
 export async function main() {
   console.log("🌱 Starting database seeding...");
@@ -32,12 +33,7 @@ export async function main() {
       passwordHash: hashedPassword,
       role: "ADMIN",
       designation: "Operations Manager",
-      featureFlags: {
-        canApproveVendors: true,
-        canManageOrders: true,
-        canViewReports: true,
-        canManageDisputes: true,
-      },
+      featureFlags: DEFAULT_FEATURE_FLAGS,
       approvedById: superAdmin.id,
       lastLoginAt: null,
     },
