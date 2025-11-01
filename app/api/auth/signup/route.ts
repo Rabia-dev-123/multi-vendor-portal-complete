@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       {
-        message: "Signup successful! Your account is pending admin approval.",
+        message: "Signup successful! Your vendor account has been created and is pending super admin approval. You will be able to login once approved.",
         user: {
           id: user.id,
           name: user.name,
