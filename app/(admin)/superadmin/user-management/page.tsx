@@ -12,8 +12,10 @@ import {
   CloseLineIcon,
   TrashBinIcon,
   ChevronDownIcon,
+  BoltIcon,
 } from "@/icons";
 import UserFormModal from "./userFormModal";
+import FeatureFlagsModal from "./FeatureFlagsModal";
 import {
   useUsers,
   useCreateUser,
@@ -23,6 +25,7 @@ import {
   useRevokeUserApproval,
 } from "@/lib/hooks/useUsers";
 import { type UserRole } from "@/lib/prisma";
+import { type FeatureFlags } from "@/lib/featureFlags";
 
 type User = {
   id: number;
@@ -35,6 +38,7 @@ type User = {
   website?: string;
   taxId?: string;
   designation?: string;
+  featureFlags?: FeatureFlags | null;
   approvedAt?: string | null;
   approvedBy?: {
     id: number;
@@ -72,6 +76,7 @@ export default function UserManagementPage() {
   // Local state
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showFeatureFlagsModal, setShowFeatureFlagsModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [filterRole, setFilterRole] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -209,6 +214,11 @@ export default function UserManagementPage() {
     setShowEditModal(true);
   };
 
+  const openFeatureFlagsModal = (user: User) => {
+    setSelectedUser(user);
+    setShowFeatureFlagsModal(true);
+  };
+
   const resetForm = () => {
     setFormData({
       name: "",
@@ -311,6 +321,15 @@ export default function UserManagementPage() {
               title="Revoke Approval"
             >
               <CloseLineIcon className="w-4 h-4" />
+            </button>
+          )}
+          {user.role === "ADMIN" && (
+            <button
+              onClick={() => openFeatureFlagsModal(user)}
+              className="text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded transition"
+              title="Manage Feature Permissions"
+            >
+              <BoltIcon />
             </button>
           )}
           <button
@@ -475,6 +494,25 @@ export default function UserManagementPage() {
         isSubmitting={updateUser.isPending}
         error={updateUser.error?.message}
       />
+
+      {selectedUser && (
+        <FeatureFlagsModal
+          open={showFeatureFlagsModal}
+          onOpenChange={(open) => {
+            setShowFeatureFlagsModal(open);
+            if (!open) {
+              setSelectedUser(null);
+            }
+          }}
+          userId={selectedUser.id}
+          userName={selectedUser.name}
+          onClose={() => {
+            setShowFeatureFlagsModal(false);
+            setSelectedUser(null);
+            setSuccess("Feature permissions updated successfully");
+          }}
+        />
+      )}
     </>
   );
 }

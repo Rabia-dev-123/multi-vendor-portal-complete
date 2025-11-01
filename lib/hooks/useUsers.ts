@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CreateUserInput, UpdateUserInput } from "../validations/user";
 
+import { FeatureFlags } from "../featureFlags";
+
 // Types
 type User = {
   id: number;
@@ -13,6 +15,7 @@ type User = {
   website?: string;
   taxId?: string;
   designation?: string;
+  featureFlags?: FeatureFlags | null;
   approvedAt?: string | null;
   approvedBy?: {
     id: number;
