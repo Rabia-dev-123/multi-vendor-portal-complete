@@ -5,7 +5,7 @@ import { Metadata } from "next";
 import React from "react";
 
 export const metadata: Metadata = {
-  title: "Orderly",
+  title: "Drop Sigma",
   description: "platform for managing your orders and vendors",
 };
 

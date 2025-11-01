@@ -31,7 +31,7 @@ export default function AuthLayout({
                     src="./images/logo/auth-logo.svg"
                     alt="Logo"
                   /> */}
-                  Orderly
+                  Drop Sigma
                 </Link>
                 {/* <p className="text-center text-gray-400 dark:text-white/60">
                   Free and Open-Source Tailwind CSS Admin Dashboard Template

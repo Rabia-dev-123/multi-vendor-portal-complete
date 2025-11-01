@@ -12,7 +12,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Orderly",
+  title: "Drop Sigma",
   description: "platform for managing your orders and vendors",
 };
 

@@ -2,7 +2,7 @@ import SignInForm from "@/components/auth/SignInForm";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Orderly",
+  title: "Drop Sigma",
   description: "platform for managing your orders and vendors",
 };
 

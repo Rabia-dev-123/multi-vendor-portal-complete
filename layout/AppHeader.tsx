@@ -99,7 +99,7 @@ const AppHeader: React.FC = () => {
               src="./images/logo/logo-dark.svg"
               alt="Logo"
             /> */}
-            Orderly
+            Drop Sigma
           </Link>
 
           <button

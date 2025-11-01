@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import EcommerceDashboard from "./ecommerceDashboard";
 
 export const metadata: Metadata = {
-  title: "Orderly",
+  title: "Drop Sigma",
   description: "platform for managing your orders and vendors",
 };
 

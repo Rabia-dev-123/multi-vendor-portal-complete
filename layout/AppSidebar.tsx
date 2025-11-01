@@ -335,7 +335,7 @@ const AppSidebar: React.FC = () => {
                 height={32}
                 className="inline-block mr-2"
               />
-              Orderly
+              Drop Sigma
             </h2>
           ) : (
             <Image

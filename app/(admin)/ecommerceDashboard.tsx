@@ -8,7 +8,7 @@ import RecentOrders from "@/components/ecommerce/RecentOrders";
 import DemographicCard from "@/components/ecommerce/DemographicCard";
 
 export const metadata: Metadata = {
-  title: "Orderly",
+  title: "Drop Sigma",
   description: "platform for managing your orders and vendors",
 };
 
