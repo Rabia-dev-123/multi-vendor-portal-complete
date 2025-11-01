@@ -326,7 +326,8 @@ const AppSidebar: React.FC = () => {
         }`}
       >
         <Link href="/">
-          {isExpanded || isHovered || isMobileOpen ? (
+          <h2 className="lg:text-2xl font-semibold">Orderly</h2>
+          {/* {isExpanded || isHovered || isMobileOpen ? (
             <>
               <Image
                 className="dark:hidden"
@@ -350,7 +351,7 @@ const AppSidebar: React.FC = () => {
               width={32}
               height={32}
             />
-          )}
+          )} */}
         </Link>
       </div>
       <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
