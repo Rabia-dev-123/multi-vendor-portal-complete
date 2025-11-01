@@ -22,7 +22,7 @@ import {
   useApproveUser,
   useRevokeUserApproval,
 } from "@/lib/hooks/useUsers";
-import { type UserRole } from "@/app/generated/prisma/client";
+import { type UserRole } from "@/lib/prisma";
 
 type User = {
   id: number;
