@@ -8,9 +8,8 @@ import RecentOrders from "@/components/ecommerce/RecentOrders";
 import DemographicCard from "@/components/ecommerce/DemographicCard";
 
 export const metadata: Metadata = {
-  title:
-    "Multi Vendor Portal Dashboard | TailAdmin - Next.js Dashboard Template",
-  description: "This is the main dashboard for Multi Vendor Portal",
+  title: "Orderly",
+  description: "platform for managing your orders and vendors",
 };
 
 export default function Ecommerce() {
@@ -40,4 +39,3 @@ export default function Ecommerce() {
     </div>
   );
 }
-

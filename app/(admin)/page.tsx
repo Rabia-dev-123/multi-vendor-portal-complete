@@ -3,9 +3,8 @@ import type { Metadata } from "next";
 import EcommerceDashboard from "./ecommerceDashboard";
 
 export const metadata: Metadata = {
-  title:
-    "Multi Vendor Portal Dashboard | TailAdmin - Next.js Dashboard Template",
-  description: "This is the main dashboard for Multi Vendor Portal",
+  title: "Orderly",
+  description: "platform for managing your orders and vendors",
 };
 
 export default function Dashboard() {

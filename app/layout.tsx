@@ -12,8 +12,8 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Multi Vendor Portal Dashboard",
-  description: "This is the main dashboard for Multi Vendor Portal",
+  title: "Orderly",
+  description: "platform for managing your orders and vendors",
 };
 
 export default function RootLayout({
