@@ -326,7 +326,25 @@ const AppSidebar: React.FC = () => {
         }`}
       >
         <Link href="/">
-          <h2 className="lg:text-2xl font-semibold">Orderly</h2>
+          {isExpanded || isHovered || isMobileOpen ? (
+            <h2 className="lg:text-2xl font-semibold flex items-center">
+              <Image
+                src="/images/logo/logo-icon.svg"
+                alt="Logo"
+                width={32}
+                height={32}
+                className="inline-block mr-2"
+              />
+              Orderly
+            </h2>
+          ) : (
+            <Image
+              src="/images/logo/logo-icon.svg"
+              alt="Logo"
+              width={32}
+              height={32}
+            />
+          )}
           {/* {isExpanded || isHovered || isMobileOpen ? (
             <>
               <Image
