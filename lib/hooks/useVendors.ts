@@ -92,6 +92,7 @@ export function useApproveVendor() {
     mutationFn: approveVendor,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vendors"] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     },
   });
 }
@@ -103,6 +104,7 @@ export function useRevokeVendorApproval() {
     mutationFn: revokeVendorApproval,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vendors"] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     },
   });
 }

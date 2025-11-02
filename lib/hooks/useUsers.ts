@@ -100,7 +100,7 @@ async function deleteUser(id: number): Promise<void> {
 }
 
 async function approveUser(id: number): Promise<User> {
-  const response = await fetch(`/api/users/${id}/approve`, {
+  const response = await fetch(`/api/vendors/${id}/approve`, {
     method: "PATCH",
   });
 
@@ -110,11 +110,11 @@ async function approveUser(id: number): Promise<User> {
   }
 
   const result = await response.json();
-  return result.user;
+  return result.user || result.vendor;
 }
 
 async function revokeUserApproval(id: number): Promise<User> {
-  const response = await fetch(`/api/users/${id}/approve`, {
+  const response = await fetch(`/api/vendors/${id}/approve`, {
     method: "DELETE",
   });
 
@@ -124,7 +124,7 @@ async function revokeUserApproval(id: number): Promise<User> {
   }
 
   const result = await response.json();
-  return result.user;
+  return result.user || result.vendor;
 }
 
 // React Query Hooks
@@ -176,6 +176,7 @@ export function useApproveUser() {
     mutationFn: approveUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["vendors"] });
     },
   });
 }
@@ -187,6 +188,7 @@ export function useRevokeUserApproval() {
     mutationFn: revokeUserApproval,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["vendors"] });
     },
   });
 }
