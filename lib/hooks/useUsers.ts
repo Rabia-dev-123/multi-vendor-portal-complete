@@ -17,6 +17,15 @@ export type User = Prisma.UserGetPayload<{
         email: true;
       };
     };
+    phoneNumber: true;
+    address: true;
+    website: true;
+    taxId: true;
+    designation: true;
+    companyName: true;
+    lastLoginAt: true;
+    createdAt: true;
+    updatedAt: true;
   };
 }>;
 

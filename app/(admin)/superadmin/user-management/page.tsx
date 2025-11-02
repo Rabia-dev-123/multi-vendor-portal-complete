@@ -25,30 +25,7 @@ import {
   useRevokeUserApproval,
 } from "@/lib/hooks/useUsers";
 import { type UserRole } from "@/lib/prisma";
-import { type FeatureFlags } from "@/lib/featureFlags";
-
-type User = {
-  id: number;
-  name: string;
-  email: string;
-  role: UserRole;
-  companyName?: string;
-  phoneNumber?: string;
-  address?: string;
-  website?: string;
-  taxId?: string;
-  designation?: string;
-  featureFlags?: FeatureFlags | null;
-  approvedAt?: string | null;
-  approvedBy?: {
-    id: number;
-    name: string;
-    email: string;
-  } | null;
-  lastLoginAt?: string | null;
-  createdAt: string;
-  updatedAt: string;
-};
+import { type User } from "@/lib/hooks/useUsers";
 
 export type UserFormData = {
   name: string;
