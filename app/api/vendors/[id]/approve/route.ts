@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { hasFeatureAccess } from "@/lib/utils/checkFeatureAccess";
 import { type FeatureFlags } from "@/lib/featureFlags";
+import { sendVendorApprovalEmail, sendVendorRejectionEmail } from "@/lib/email";
 
 export async function PATCH(
   request: NextRequest,
@@ -77,6 +78,14 @@ export async function PATCH(
           },
         },
       },
+    });
+
+    await sendVendorApprovalEmail({
+      vendorName: updatedUser.name,
+      vendorEmail: updatedUser.email,
+      companyName: updatedUser.companyName,
+    }).catch(() => {
+      console.error("Failed to send vendor approval email");
     });
 
     return NextResponse.json(
@@ -154,6 +163,15 @@ export async function DELETE(
         companyName: true,
         approvedAt: true,
       },
+    });
+
+    await sendVendorRejectionEmail({
+      vendorName: updatedUser.name,
+      vendorEmail: updatedUser.email,
+      companyName: updatedUser.companyName,
+      reason: "Your vendor approval has been revoked by an administrator.",
+    }).catch(() => {
+      console.error("Failed to send vendor rejection email");
     });
 
     return NextResponse.json(

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import { prisma } from "@/lib/prisma";
+import { sendAdminVendorAlertEmail } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   try {
@@ -43,9 +44,31 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    const adminUsers = await prisma.user.findMany({
+      where: {
+        role: "SUPER_ADMIN",
+      },
+      select: { email: true },
+    });
+
+    const adminEmails = adminUsers.map((admin) => admin.email);
+
+    if (adminEmails.length > 0) {
+      await sendAdminVendorAlertEmail({
+        vendorName: user.name,
+        vendorEmail: user.email,
+        companyName: user.companyName,
+        phoneNumber: user.phoneNumber,
+        adminEmails,
+      }).catch(() => {
+        console.error("Failed to send admin alert email");
+      });
+    }
+
     return NextResponse.json(
       {
-        message: "Signup successful! Your vendor account has been created and is pending super admin approval. You will be able to login once approved.",
+        message:
+          "Signup successful! Your vendor account has been created and is pending super admin approval. You will be able to login once approved.",
         user: {
           id: user.id,
           name: user.name,
@@ -63,4 +86,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
