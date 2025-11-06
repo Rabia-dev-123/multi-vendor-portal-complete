@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ vendors }, { status: 200 });
+return NextResponse.json(vendors, { status: 200 });
   } catch (error) {
     console.error("Error fetching vendors:", error);
     return NextResponse.json(

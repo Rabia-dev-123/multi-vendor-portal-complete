@@ -47,7 +47,8 @@ async function fetchVendors(params?: GetVendorsParams): Promise<Vendor[]> {
   }
 
   const data = await response.json();
-  return data.vendors;
+  // FIX: Return data directly since API returns array, not {vendors: array}
+  return data; // ✅ Changed from data.vendors to data
 }
 
 async function approveVendor(id: number): Promise<Vendor> {

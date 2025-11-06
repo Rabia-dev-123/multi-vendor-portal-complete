@@ -417,8 +417,8 @@ export default function UserManagementPage() {
         </ComponentCard>
 
         {/* Users Table */}
-        <ComponentCard title={`Users (${filteredUsers.length})`}>
-          <DataTable<User>
+<ComponentCard title={`Users (${filteredUsers.length})`}>
+            <DataTable<User>
             data={filteredUsers as User[]}
             columns={columns}
             emptyMessage="No users found"

@@ -36,6 +36,8 @@ type GetUsersParams = {
 
 // API Functions
 async function fetchUsers(params?: GetUsersParams): Promise<User[]> {
+  console.log('🔄 fetchUsers: Fetching from /api/admin/users');
+  
   const searchParams = new URLSearchParams();
   if (params?.role && params.role !== "all") {
     searchParams.append("role", params.role);
@@ -44,24 +46,38 @@ async function fetchUsers(params?: GetUsersParams): Promise<User[]> {
     searchParams.append("status", params.status);
   }
 
-  const url = `/api/users${searchParams.toString() ? `?${searchParams}` : ""}`;
+  const url = `/api/admin/users${searchParams.toString() ? `?${searchParams}` : ""}`;
+  console.log('📡 fetchUsers: Making request to:', url);
+  
   const response = await fetch(url);
+  console.log('📊 fetchUsers: Response status:', response.status);
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Failed to fetch users");
+    const errorText = await response.text();
+    console.error('❌ fetchUsers: API error:', errorText);
+    throw new Error(errorText || "Failed to fetch users");
   }
 
   const data = await response.json();
-  return data.users;
+  console.log('✅ fetchUsers: Raw data received:', data);
+  
+  // FIX: Extract users array from the response object
+  const users = data.users || data;
+  console.log('✅ fetchUsers: Processed users:', users.length);
+  
+  return users;
 }
 
 async function createUser(data: CreateUserInput): Promise<User> {
+  console.log('🔄 Creating user:', data.email);
+  
   const response = await fetch("/api/users", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
+
+  console.log('📊 Create user response status:', response.status);
 
   if (!response.ok) {
     const error = await response.json();
@@ -73,11 +89,15 @@ async function createUser(data: CreateUserInput): Promise<User> {
 }
 
 async function updateUser(id: number, data: UpdateUserInput): Promise<User> {
+  console.log('🔄 Updating user:', id);
+  
   const response = await fetch(`/api/users/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
+
+  console.log('📊 Update user response status:', response.status);
 
   if (!response.ok) {
     const error = await response.json();
@@ -89,9 +109,13 @@ async function updateUser(id: number, data: UpdateUserInput): Promise<User> {
 }
 
 async function deleteUser(id: number): Promise<void> {
+  console.log('🔄 Deleting user:', id);
+  
   const response = await fetch(`/api/users/${id}`, {
     method: "DELETE",
   });
+
+  console.log('📊 Delete user response status:', response.status);
 
   if (!response.ok) {
     const error = await response.json();
@@ -99,32 +123,50 @@ async function deleteUser(id: number): Promise<void> {
   }
 }
 
+// FIXED: Use the correct endpoint /api/vendors/[id]/approve and handle vendor response
 async function approveUser(id: number): Promise<User> {
-  const response = await fetch(`/api/vendors/${id}/approve`, {
+  console.log('🔄 Approving user:', id);
+  
+  const response = await fetch(`/api/vendors/${id}/approve`, { // ✅ CORRECT ENDPOINT
     method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
   });
 
+  console.log('📊 Approve response status:', response.status);
+
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Failed to approve user");
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to approve vendor");
   }
 
   const result = await response.json();
-  return result.user || result.vendor;
+  console.log('✅ Approve response data:', result);
+  return result.vendor; // ✅ CORRECT RESPONSE FIELD
 }
 
+// FIXED: Use the correct endpoint /api/vendors/[id]/approve and handle vendor response
 async function revokeUserApproval(id: number): Promise<User> {
-  const response = await fetch(`/api/vendors/${id}/approve`, {
+  console.log('🔄 Revoking approval for user:', id);
+  
+  const response = await fetch(`/api/vendors/${id}/approve`, { // ✅ CORRECT ENDPOINT
     method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
   });
 
+  console.log('📊 Revoke response status:', response.status);
+
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Failed to revoke user approval");
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to revoke vendor approval");
   }
 
   const result = await response.json();
-  return result.user || result.vendor;
+  console.log('✅ Revoke response data:', result);
+  return result.vendor; // ✅ CORRECT RESPONSE FIELD
 }
 
 // React Query Hooks
@@ -176,7 +218,7 @@ export function useApproveUser() {
     mutationFn: approveUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      queryClient.invalidateQueries({ queryKey: ["vendors"] });
+      queryClient.invalidateQueries({ queryKey: ["vendors"], exact: true }); // ✅ ADD exact: true
     },
   });
 }
@@ -188,7 +230,7 @@ export function useRevokeUserApproval() {
     mutationFn: revokeUserApproval,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      queryClient.invalidateQueries({ queryKey: ["vendors"] });
+      queryClient.invalidateQueries({ queryKey: ["vendors"], exact: true }); // ✅ ADD exact: true
     },
   });
 }
