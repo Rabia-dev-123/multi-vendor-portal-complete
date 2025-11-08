@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { useSession } from "next-auth/react";
 import { useModal } from "../../hooks/useModal";
 import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
@@ -41,19 +42,25 @@ interface User {
 }
 
 export default function UserAddressCard() {
+  const { data: session } = useSession();
   const { isOpen, openModal, closeModal } = useModal();
   const queryClient = useQueryClient();
 
   // React Query for fetching user data
   const { data: user, isLoading } = useQuery({
-    queryKey: ['user'],
+    queryKey: ['user', session?.user?.id],
     queryFn: async (): Promise<User> => {
-      const response = await fetch('/api/user/me');
+      if (!session?.user?.id) {
+        throw new Error('No user session');
+      }
+      
+      const response = await fetch(`/api/users/${session.user.id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch user data');
       }
       return response.json();
     },
+    enabled: !!session?.user?.id,
   });
 
   // React Hook Form for address fields
@@ -66,17 +73,13 @@ export default function UserAddressCard() {
   } = useForm({
     defaultValues: {
       address: "",
-      taxId: ""
     }
   });
 
-  // Populate form when user data loads or modal opens
   React.useEffect(() => {
     if (user && isOpen) {
-      console.log('Resetting address form with user data:', user);
       reset({
         address: user.address || "",
-        taxId: user.taxId || ""
       });
     }
   }, [user, isOpen, reset]);
@@ -86,9 +89,6 @@ export default function UserAddressCard() {
     mutationFn: async (userData: any) => {
       if (!user) throw new Error('No user data');
       
-      console.log('🔵 Making API call to:', `/api/users/${user.id}`);
-      console.log('📤 Sending address data:', userData);
-      
       const response = await fetch(`/api/users/${user.id}`, {
         method: 'PUT',
         headers: {
@@ -97,40 +97,28 @@ export default function UserAddressCard() {
         body: JSON.stringify(userData),
       });
       
-      console.log('📥 API Response status:', response.status);
-      
       if (!response.ok) {
         const errorData = await response.json();
-        console.log('❌ API Error response:', errorData);
         throw new Error(errorData.error || 'Failed to update address');
       }
       
       const result = await response.json();
-      console.log('✅ API Success response:', result);
       return result;
     },
     onSuccess: () => {
-      console.log('🎉 Address update successful');
       showToast('Address updated successfully!', 'success');
       queryClient.invalidateQueries({ queryKey: ['user'] });
       closeModal();
     },
     onError: (error: Error) => {
-      console.log('💥 Address update error:', error);
       showToast(error.message, 'error');
     },
   });
 
   const onSubmit = (data: any) => {
-    console.log('🚀 ADDRESS FORM SUBMITTED with data:', data);
-    
-    // Prepare data for API - only address and taxId
     const cleanedData: any = {};
     
     if (data.address && data.address.trim() !== "") cleanedData.address = data.address.trim();
-    if (data.taxId && data.taxId.trim() !== "") cleanedData.taxId = data.taxId.trim();
-    
-    console.log('🧹 Cleaned address data for API:', cleanedData);
     
     // Don't send empty request
     if (Object.keys(cleanedData).length === 0) {
@@ -140,32 +128,6 @@ export default function UserAddressCard() {
     
     updateMutation.mutate(cleanedData);
   };
-
-  // Parse address to show country, city/state (for display only)
-  const parseAddressForDisplay = (address: string | null | undefined) => {
-    // Handle null, undefined, or empty address
-    if (!address || address.trim() === "") {
-      return {
-        country: "Not set",
-        cityState: "Not set"
-      };
-    }
-    
-    // Simple parsing - you can make this smarter based on your address format
-    const parts = address.split(',');
-    if (parts.length >= 3) {
-      return {
-        country: parts[parts.length - 1].trim() || "Not set",
-        cityState: parts.slice(0, -1).join(', ').trim() || "Not set"
-      };
-    }
-    return {
-      country: "Not set",
-      cityState: address.trim() || "Not set"
-    };
-  };
-
-  const { country, cityState } = parseAddressForDisplay(user?.address);
 
   if (isLoading) {
     return (
@@ -195,40 +157,13 @@ export default function UserAddressCard() {
               Address
             </h4>
 
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
-              <div>
-                <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                  Country
-                </p>
-                <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  {country}
-                </p>
-              </div>
-
-              <div>
-                <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                  City/State
-                </p>
-                <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  {cityState}
-                </p>
-              </div>
-
+            <div className="grid grid-cols-1 gap-4">
               <div>
                 <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
                   Full Address
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
                   {user.address || 'Not set'}
-                </p>
-              </div>
-
-              <div>
-                <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                  TAX ID
-                </p>
-                <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  {user.taxId || 'Not set'}
                 </p>
               </div>
             </div>
@@ -278,17 +213,7 @@ export default function UserAddressCard() {
                     id="address"
                     value={watch("address")}
                     onChange={(e) => setValue("address", e.target.value)}
-                    placeholder="Enter your full address (street, city, state, country)"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="taxId">TAX ID</Label>
-                  <Input
-                    id="taxId"
-                    value={watch("taxId")}
-                    onChange={(e) => setValue("taxId", e.target.value)}
-                    placeholder="Enter TAX ID"
+                    placeholder="Enter your address"
                   />
                 </div>
               </div>

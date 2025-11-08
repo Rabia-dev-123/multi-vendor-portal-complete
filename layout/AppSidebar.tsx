@@ -63,7 +63,7 @@ const getNavItems = (
   },
   {
     icon: <UserCircleIcon />,
-    name: "",
+   name: "User Profile",
     path: "/profile",
   },
   {

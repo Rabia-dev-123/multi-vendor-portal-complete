@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CreateUserInput, UpdateUserInput } from "../validations/user";
-import { type Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 export type User = Prisma.UserGetPayload<{
   select: {
@@ -36,8 +36,6 @@ type GetUsersParams = {
 
 // API Functions
 async function fetchUsers(params?: GetUsersParams): Promise<User[]> {
-  console.log('🔄 fetchUsers: Fetching from /api/admin/users');
-  
   const searchParams = new URLSearchParams();
   if (params?.role && params.role !== "all") {
     searchParams.append("role", params.role);
@@ -47,37 +45,24 @@ async function fetchUsers(params?: GetUsersParams): Promise<User[]> {
   }
 
   const url = `/api/admin/users${searchParams.toString() ? `?${searchParams}` : ""}`;
-  console.log('📡 fetchUsers: Making request to:', url);
-  
   const response = await fetch(url);
-  console.log('📊 fetchUsers: Response status:', response.status);
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('❌ fetchUsers: API error:', errorText);
     throw new Error(errorText || "Failed to fetch users");
   }
 
   const data = await response.json();
-  console.log('✅ fetchUsers: Raw data received:', data);
-  
-  // FIX: Extract users array from the response object
   const users = data.users || data;
-  console.log('✅ fetchUsers: Processed users:', users.length);
-  
   return users;
 }
 
 async function createUser(data: CreateUserInput): Promise<User> {
-  console.log('🔄 Creating user:', data.email);
-  
-  const response = await fetch("/api/users", {
+  const response = await fetch("/api/admin/users", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-
-  console.log('📊 Create user response status:', response.status);
 
   if (!response.ok) {
     const error = await response.json();
@@ -89,15 +74,11 @@ async function createUser(data: CreateUserInput): Promise<User> {
 }
 
 async function updateUser(id: number, data: UpdateUserInput): Promise<User> {
-  console.log('🔄 Updating user:', id);
-  
   const response = await fetch(`/api/users/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-
-  console.log('📊 Update user response status:', response.status);
 
   if (!response.ok) {
     const error = await response.json();
@@ -109,13 +90,9 @@ async function updateUser(id: number, data: UpdateUserInput): Promise<User> {
 }
 
 async function deleteUser(id: number): Promise<void> {
-  console.log('🔄 Deleting user:', id);
-  
   const response = await fetch(`/api/users/${id}`, {
     method: "DELETE",
   });
-
-  console.log('📊 Delete user response status:', response.status);
 
   if (!response.ok) {
     const error = await response.json();
@@ -125,16 +102,12 @@ async function deleteUser(id: number): Promise<void> {
 
 // FIXED: Use the correct endpoint /api/vendors/[id]/approve and handle vendor response
 async function approveUser(id: number): Promise<User> {
-  console.log('🔄 Approving user:', id);
-  
-  const response = await fetch(`/api/vendors/${id}/approve`, { // ✅ CORRECT ENDPOINT
+  const response = await fetch(`/api/vendors/${id}/approve`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
     },
   });
-
-  console.log('📊 Approve response status:', response.status);
 
   if (!response.ok) {
     const errorData = await response.json();
@@ -142,22 +115,17 @@ async function approveUser(id: number): Promise<User> {
   }
 
   const result = await response.json();
-  console.log('✅ Approve response data:', result);
-  return result.vendor; // ✅ CORRECT RESPONSE FIELD
+  return result.vendor;
 }
 
 // FIXED: Use the correct endpoint /api/vendors/[id]/approve and handle vendor response
 async function revokeUserApproval(id: number): Promise<User> {
-  console.log('🔄 Revoking approval for user:', id);
-  
-  const response = await fetch(`/api/vendors/${id}/approve`, { // ✅ CORRECT ENDPOINT
+  const response = await fetch(`/api/vendors/${id}/approve`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
     },
   });
-
-  console.log('📊 Revoke response status:', response.status);
 
   if (!response.ok) {
     const errorData = await response.json();
@@ -165,8 +133,7 @@ async function revokeUserApproval(id: number): Promise<User> {
   }
 
   const result = await response.json();
-  console.log('✅ Revoke response data:', result);
-  return result.vendor; // ✅ CORRECT RESPONSE FIELD
+  return result.vendor;
 }
 
 // React Query Hooks
@@ -218,7 +185,7 @@ export function useApproveUser() {
     mutationFn: approveUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      queryClient.invalidateQueries({ queryKey: ["vendors"], exact: true }); // ✅ ADD exact: true
+      queryClient.invalidateQueries({ queryKey: ["vendors"], exact: true });
     },
   });
 }
@@ -230,7 +197,7 @@ export function useRevokeUserApproval() {
     mutationFn: revokeUserApproval,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      queryClient.invalidateQueries({ queryKey: ["vendors"], exact: true }); // ✅ ADD exact: true
+      queryClient.invalidateQueries({ queryKey: ["vendors"], exact: true });
     },
   });
 }

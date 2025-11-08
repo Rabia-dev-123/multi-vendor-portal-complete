@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { useSession } from "next-auth/react"; 
 import { useModal } from "../../hooks/useModal";
 import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
@@ -20,9 +21,7 @@ const userProfileSchema = z.object({
   taxId: z.string().optional(),
 });
 
-// Simple toast function
 const showToast = (message: string, type: 'success' | 'error') => {
-  // Remove any existing toasts first
   const existingToasts = document.querySelectorAll('[data-toast]');
   existingToasts.forEach(toast => toast.remove());
   
@@ -54,19 +53,25 @@ interface User {
 }
 
 export default function UserInfoCard() {
+  const { data: session } = useSession(); 
   const { isOpen, openModal, closeModal } = useModal();
   const queryClient = useQueryClient();
 
-  // React Query for fetching user data
+  // React Query for fetching user data 
   const { data: user, isLoading } = useQuery({
-    queryKey: ['user'],
+    queryKey: ['user', session?.user?.id],
     queryFn: async (): Promise<User> => {
-      const response = await fetch('/api/user/me');
+      if (!session?.user?.id) {
+        throw new Error('No user session');
+      }
+      
+      const response = await fetch(`/api/users/${session.user.id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch user data');
       }
       return response.json();
     },
+    enabled: !!session?.user?.id, 
   });
 
   // React Hook Form with Zod validation
@@ -88,19 +93,9 @@ export default function UserInfoCard() {
     }
   });
 
-  // Debug: Log user data when it loads
-  React.useEffect(() => {
-    if (user) {
-      console.log('🔍 USER DATA LOADED:', user);
-      console.log('🔍 User ID:', user?.id);
-      console.log('🔍 User Role:', user?.role);
-    }
-  }, [user]);
-
   // Populate form when user data loads or modal opens
   React.useEffect(() => {
     if (user && isOpen) {
-      console.log('🔄 Resetting form with user data:', user);
       reset({
         name: user.name || "",
         companyName: user.companyName || "",
@@ -117,9 +112,6 @@ export default function UserInfoCard() {
     mutationFn: async (userData: any) => {
       if (!user) throw new Error('No user data');
       
-      console.log('🔵 Making API call to:', `/api/users/${user.id}`);
-      console.log('📤 Sending data:', userData);
-      
       const response = await fetch(`/api/users/${user.id}`, {
         method: 'PATCH',
         headers: {
@@ -128,35 +120,25 @@ export default function UserInfoCard() {
         body: JSON.stringify(userData),
       });
       
-      console.log('📥 API Response status:', response.status);
-      console.log('📥 API Response OK:', response.ok);
-      
       if (!response.ok) {
-        // Try to parse error as JSON, fallback to text
         try {
           const errorData = await response.json();
-          console.log('❌ API Error response:', errorData);
           throw new Error(errorData.error || 'Failed to update profile');
         } catch (e) {
           const errorText = await response.text();
-          console.log('❌ API Error text:', errorText);
           throw new Error(errorText || 'Failed to update profile');
         }
       }
       
       const result = await response.json();
-      console.log('✅ API Success response:', result);
       return result;
     },
     onSuccess: () => {
-      console.log('🎉 Update successful, showing toast');
       showToast('Profile updated successfully!', 'success');
       queryClient.invalidateQueries({ queryKey: ['user'] });
       closeModal();
     },
     onError: (error: Error) => {
-      console.log('💥 Update error:', error);
-      // Show user-friendly error message
       const userMessage = error.message.includes('Unauthorized') 
         ? 'You are not authorized to update this profile'
         : error.message.includes('restricted')
@@ -168,10 +150,6 @@ export default function UserInfoCard() {
   });
 
   const onSubmit = (data: any) => {
-    console.log('🚀 FORM SUBMITTED with data:', data);
-    console.log('📝 User ID:', user?.id);
-    
-    // Better data cleaning - only include fields with values
     const cleanedData: any = {};
     
     if (data.name && data.name.trim() !== "") cleanedData.name = data.name.trim();
@@ -181,8 +159,6 @@ export default function UserInfoCard() {
     if (data.website && data.website.trim() !== "") cleanedData.website = data.website.trim();
     if (data.taxId && data.taxId.trim() !== "") cleanedData.taxId = data.taxId.trim();
     
-    console.log('🧹 Cleaned data for API:', cleanedData);
-    
     // Don't send empty request
     if (Object.keys(cleanedData).length === 0) {
       showToast('No changes to save', 'error');
@@ -191,17 +167,6 @@ export default function UserInfoCard() {
     
     updateMutation.mutate(cleanedData);
   };
-
-  // Add debug logging for form values when modal is open
-  React.useEffect(() => {
-    if (isOpen) {
-      console.log('📝 Modal opened, current form values:', watch());
-      const subscription = watch((value) => {
-        console.log('📝 Form values changed:', value);
-      });
-      return () => subscription.unsubscribe();
-    }
-  }, [watch, isOpen]);
 
   if (isLoading) {
     return (
